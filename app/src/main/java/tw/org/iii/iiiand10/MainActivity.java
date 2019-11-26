@@ -1,5 +1,5 @@
 package tw.org.iii.iiiand10;
-
+//加入我的最愛功能,link sqlit
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -17,10 +17,17 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+
 public class MainActivity extends AppCompatActivity {
     private ListView listView;
     private MyAdapter myAdapter;
     private RequestQueue queue;
+    private LinkedList<HashMap<String,String>> data;
 
 
 
@@ -29,15 +36,14 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        data = new LinkedList<>();
         queue = Volley.newRequestQueue(this);
         listView = findViewById(R.id.listView);
         initListView();
         fetchRemoteDate();
-
-
     }
 
-    //拉取遠端資料抓進藍來
+    //拉取遠端資料抓進
     private void fetchRemoteDate(){
         StringRequest request = new StringRequest(Request.Method.GET,
                 "http://data.coa.gov.tw/Service/OpenData/ODwsv/ODwsvTravelFood.aspx",
@@ -45,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(String response) {
                         Log.v("brad",response);
+                        parseJSON(response);
                     }
                 },
                 new Response.ErrorListener() {
@@ -54,6 +61,30 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
         queue.add(request);
+    }
+
+    //解析資料
+    private void parseJSON(String json){
+        try {
+            JSONArray root = new JSONArray(json);
+            for(int i=0; i<root.length(); i++){  //大括號是物件
+                HashMap<String,String> dd = new HashMap<>();
+                JSONObject  row = root.getJSONObject(i);
+                dd.put("ID",row.getString("ID"));
+                dd.put("Name",row.getString("Name"));
+                dd.put("Address",row.getString("Address"));
+                dd.put("HostWords",row.getString("HostWords"));
+                dd.put("Tel",row.getString("Tel"));
+                dd.put("Coordinate",row.getString("Coordinate"));
+                dd.put("FoodFeature",row.getString("FoodFeature"));
+                dd.put("PicURL",row.getString("PicURL"));
+                //尋訪完畢,add至data
+                data.add(dd);
+            }
+        }catch (Exception e){
+            Log.v("brad",e.toString());
+        }
+
     }
 
     private  void initListView(){
