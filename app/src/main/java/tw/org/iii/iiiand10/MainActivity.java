@@ -3,11 +3,13 @@ package tw.org.iii.iiiand10;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -39,7 +41,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        progressDialog = new ProgressDialog(this);
+        progressDialog = new ProgressDialog(this);//浮動視窗 物件生成
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         progressDialog.setMessage("Loading....");
 
@@ -103,7 +105,20 @@ public class MainActivity extends AppCompatActivity {
     private  void initListView(){
         myAdapter = new MyAdapter();//調變器
         listView.setAdapter(myAdapter);
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                gotoDetail(position);
+            }
+        });
     }
+
+    private void gotoDetail(int index){
+        Intent intent = new Intent(this, DetailActivity.class);
+        intent.putExtra("data", data.get(index));
+        startActivity(intent);
+    }
+
 
 
     //抽象類別 調變器; 出現紅底線, create
