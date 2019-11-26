@@ -1,14 +1,18 @@
 package tw.org.iii.iiiand10;
-//加入我的最愛功能,link sqlit
+//加入我的最愛功能
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -28,13 +32,16 @@ public class MainActivity extends AppCompatActivity {
     private MyAdapter myAdapter;
     private RequestQueue queue;
     private LinkedList<HashMap<String,String>> data;
-
-
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+        progressDialog.setMessage("Loading....");
 
         data = new LinkedList<>();
         queue = Volley.newRequestQueue(this);
@@ -45,8 +52,9 @@ public class MainActivity extends AppCompatActivity {
 
     //拉取遠端資料抓進
     private void fetchRemoteDate(){
-        StringRequest request = new StringRequest(Request.Method.GET,
-                "http://data.coa.gov.tw/Service/OpenData/ODwsv/ODwsvTravelFood.aspx",
+        progressDialog.show();
+
+        StringRequest request = new StringRequest(Request.Method.GET, "http://data.coa.gov.tw/Service/OpenData/ODwsv/ODwsvTravelFood.aspx",
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
@@ -58,6 +66,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         Log.v("brad",error.toString());
+                        progressDialog.dismiss();
                     }
                 });
         queue.add(request);
@@ -78,15 +87,19 @@ public class MainActivity extends AppCompatActivity {
                 dd.put("Coordinate",row.getString("Coordinate"));
                 dd.put("FoodFeature",row.getString("FoodFeature"));
                 dd.put("PicURL",row.getString("PicURL"));
+                dd.put("Heart", "xx");//OK 屬於我的最愛; 否則xx
                 //尋訪完畢,add至data
                 data.add(dd);
             }
+            myAdapter.notifyDataSetChanged();//一開始 沒資料, listener解完, 要通知版面配置變動
         }catch (Exception e){
             Log.v("brad",e.toString());
         }
+        progressDialog.dismiss();
 
     }
 
+    //初始,沒有資料
     private  void initListView(){
         myAdapter = new MyAdapter();//調變器
         listView.setAdapter(myAdapter);
@@ -98,7 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return 0;
+            return data.size();
         }
 
         @Override
@@ -111,10 +124,35 @@ public class MainActivity extends AppCompatActivity {
             return 0;
         }
 
-        //第幾個版面如何
+        //第幾個版面如何,不同資料內容,有不同版面
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            return null;
+        public View getView(final int position, View convertView, ViewGroup parent) {
+            LayoutInflater inflater = LayoutInflater.from(MainActivity.this); //物件,浮現式,右鍵浮現視窗,只要不適固定版面配置的,多半為inflater
+            //使用當時只會有一個, 沒有new
+            View view = inflater.inflate(R.layout.item, null); //浮現
+
+            TextView name = view.findViewById(R.id.item_name);
+            name.setText(data.get(position).get("Name"));
+
+            TextView tel = view.findViewById(R.id.item_tel);
+            tel.setText(data.get(position).get("Tel"));
+
+            TextView address = view.findViewById(R.id.item_address);
+            address.setText(data.get(position).get("Address"));
+
+            ImageView heart = view.findViewById(R.id.item_heart);
+            heart.setImageResource(data.get(position).get("Heart").equals("ok")? R.drawable.heart : R.drawable.heart_no);
+            heart.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    data.get(position).put("Heart", data.get(position).get("Heart").equals("ok")? "xx":"ok");//變更其值
+                    ((ImageView)v).setImageResource(data.get(position).get("Heart").equals("ok")? R.drawable.heart : R.drawable.heart_no); //轉型為image view
+                    Log.v("brad","pos:"+position);
+                    //1.資料要正確  2.呈現也要能match
+                }
+            });
+
+            return view;
         }
     }
 }
