@@ -37,7 +37,10 @@ public class DetailActivity extends AppCompatActivity {
 
         img = findViewById(R.id.detail_img);
         content = findViewById(R.id.detailContent);
+    }
 
+    //抓遠端影像資料
+    private void fetchRemoteImage(){
 
     }
 }

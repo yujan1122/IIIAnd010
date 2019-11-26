@@ -32,7 +32,7 @@ import java.util.LinkedList;
 public class MainActivity extends AppCompatActivity {
     private ListView listView;
     private MyAdapter myAdapter;
-    private RequestQueue queue;
+    //private RequestQueue queue;
     private LinkedList<HashMap<String,String>> data;
     private ProgressDialog progressDialog;
 
@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         progressDialog.setMessage("Loading....");
 
         data = new LinkedList<>();
-        queue = Volley.newRequestQueue(this);
+        //queue = Volley.newRequestQueue(this);
         listView = findViewById(R.id.listView);
         initListView();
         fetchRemoteDate();
@@ -71,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
                         progressDialog.dismiss();
                     }
                 });
-        queue.add(request);
+        MainApp.queue.add(request);//因為是MainApp的類別方法
     }
 
     //解析資料
